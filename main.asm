@@ -1,17 +1,23 @@
 .include "bankdetails.asm"
 .include "interrupts.asm"
 .include "vdpmemorymap.asm"
-.include "../SMSFramework/Utils/boot.asm"
-.include "../SMSFramework/Utils/FSM.asm"
-.include "../SMSFramework/Utils/vdp.asm"
-.include "../SMSFramework/Utils/spritechain.asm"
-.include "../SMSFramework/Utils/map.asm"
-.include "../SMSFramework/Utils/input.asm"
-.include "../SMSFramework/Utils/controller.asm"
-.include "../SMSFramework/Utils/macros.asm"
-.include "../SMSFramework/Managers/modemanager.asm"
-.include "../SMSFramework/Managers/vdpmanager.asm"
-.include "../SMSFramework/Managers/inputmanager.asm"
+.include "Utils/boot.asm"
+.include "Utils/FSM.asm"
+.include "Utils/vdp.asm"
+.include "Utils/spritechain.asm"
+.include "Utils/map.asm"
+.include "Utils/input.asm"
+.include "Utils/controller.asm"
+.include "Utils/macros.asm"
+.include "Managers/modemanager.asm"
+.include "Managers/vdpmanager.asm"
+.include "Managers/inputmanager.asm"
+
+;==============================================================
+; SDSC tag and SMS rom header
+;==============================================================
+.SDSCTAG 1.2,"SMS Sample App","Sample application using the SMSFramework","SavagePencil"
+
 
 .SECTION "Application Main Loop" FREE
 ; This routine is called by the framework when we're ready to enter
