@@ -6,7 +6,7 @@
         {
             "label": "Link SMS",
             "type": "shell",
-            "command": "wlalink -d -r -v -s linkfile output.sms",
+            "command": "wlalink -d -r -v -s linkfile release/output.sms",
 
             "group": {
                 "kind": "build",
