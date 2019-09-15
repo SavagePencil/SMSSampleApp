@@ -1,0 +1,26 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Link SMS",
+            "type": "shell",
+            "command": "wlalink -d -r -v -s linkfile output.sms",
+
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+
+            "dependsOn": "Assemble SMS"
+        },
+        {
+            "label": "Assemble SMS",
+            "type": "shell",
+            "command": "wla-z80 -I ../SMSFramework -o ./obj/main.o ./main.asm",
+       
+            "group": "build"
+        }
+    ]
+}
