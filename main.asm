@@ -118,6 +118,26 @@ TileLoader:
     ld      hl, $0000                       ; Dest tile index
     call    VDP_UploadTileDataToTilePos
 
+; Load 1bpp tile data while remapping only the 1s to a new color (0s go to index 0)
+TileLoader1bpp_OneRemap:
+    ld      de, TileData_1bpp_Begin                     ; Src data
+    ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
+    ld      hl, $70                                     ; Dest tile index
+    ld      a, 14                                       ; Color index for 1s
+    call    VDP_Upload1BPPWithPaletteRemapToTilePos
+
+; Load 1bpp tile data while remapping BOTH the 0s and the 1s.
+TileLoader1bpp_TwoRemap:
+    ld      hl, $72
+    CALC_VRAM_LOC_FOR_TILE_INDEX_IN_HL
+    SET_VRAM_WRITE_LOC_FROM_HL
+    ; VRAM is set!
+    ld      hl, TileData_1bpp_Begin                     ; Src data
+    ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
+    ld      e, 14                                       ; Color index for 0 values
+    ld      d, 7                                        ; Color index for 1 values
+    call    VDP_Upload1BPPWithPaletteRemaps_VRAMPtrSet
+
 ; Write a character.
 WriteCornerChars:
     ld      hl, (CornerChar)
@@ -314,6 +334,10 @@ PaletteBegin:
 .db VDP_PALETTE_BG_PALETTE_INDEX + 0, $00
 ; BG Palette Entry 1 == color $3F (white)
 .db VDP_PALETTE_BG_PALETTE_INDEX + 1, (3 << VDP_PALETTE_RED_SHIFT) | (3 << VDP_PALETTE_GREEN_SHIFT) | (3 << VDP_PALETTE_BLUE_SHIFT)
+; BG Palette Entry 7 == color $30 (blue)
+.db VDP_PALETTE_BG_PALETTE_INDEX + 7, (3 << VDP_PALETTE_BLUE_SHIFT)
+; BG Palette Entry 14 == color $0C (green)
+.db VDP_PALETTE_BG_PALETTE_INDEX + 14, (3 << VDP_PALETTE_GREEN_SHIFT)
 
 ; Sprite Palette Entry 0 == color $03 (red).  REMEMBER:  Sprites treat entry 0 as clear :)
 .db VDP_PALETTE_SPRITE_PALETTE_INDEX + 0, (3 << VDP_PALETTE_RED_SHIFT)
@@ -610,6 +634,27 @@ TileDataBegin:
 .db $FF,$00,$00,$00,$FF,$00,$00,$00,$FF,$00,$00,$00,$FF,$00,$00,$00
 .db $FF,$00,$00,$00,$FF,$00,$00,$00,$FF,$00,$00,$00,$FF,$00,$00,$00
 TileDataEnd:
+
+TileData_1bpp_Begin:
+.db %00011000
+.db %00111000
+.db %01011000
+.db %00011000
+.db %00011000
+.db %00011000
+.db %00111100
+.db %01111110
+
+.db %00000001
+.db %00000010
+.db %00000100
+.db %00001000
+.db %00010000
+.db %00100000
+.db %01000000
+.db %10000000
+
+TileData_1bpp_End:
 
 .ENDS
 
