@@ -131,12 +131,27 @@ TileLoader1bpp_TwoRemap:
     ld      hl, $72
     CALC_VRAM_LOC_FOR_TILE_INDEX_IN_HL
     SET_VRAM_WRITE_LOC_FROM_HL
+
     ; VRAM is set!
     ld      hl, TileData_1bpp_Begin                     ; Src data
     ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
     ld      e, 14                                       ; Color index for 0 values
     ld      d, 7                                        ; Color index for 1 values
     call    VDP_Upload1BPPWithPaletteRemaps_VRAMPtrSet
+
+    ; Alt version that doesn't have to interleave the colors.
+    ld      hl, $74
+    CALC_VRAM_LOC_FOR_TILE_INDEX_IN_HL
+    SET_VRAM_WRITE_LOC_FROM_HL
+
+    ; VRAM is set!
+    ld      hl, TileData_1bpp_Begin                     ; Src data
+    ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
+    PRE_INTERLEAVE_1BPP_REMAP_ENTRIES_TO_E 7, 14
+
+    call    VDP_Upload1BPPWithPaletteRemaps_VRAMPtrSet_ColorsInterleaved
+
+
 
 ; Write a character.
 WriteCornerChars:
