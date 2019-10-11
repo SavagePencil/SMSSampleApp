@@ -9,6 +9,7 @@
 .include "Utils/input.asm"
 .include "Utils/controller.asm"
 .include "Utils/macros.asm"
+.include "Utils/tile_routines.asm"
 .include "Managers/modemanager.asm"
 .include "Managers/vdpmanager.asm"
 .include "Managers/inputmanager.asm"
@@ -124,7 +125,7 @@ TileLoader1bpp_OneRemap:
     ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
     ld      hl, $70                                     ; Dest tile index
     ld      a, 14                                       ; Color index for 1s
-    call    VDP_Upload1BPPWithPaletteRemapToTilePos
+    call    Tile_Upload1BPPWithPaletteRemapToTilePos
 
 ; Load 1bpp tile data while remapping BOTH the 0s and the 1s.
 TileLoader1bpp_TwoRemap:
@@ -137,7 +138,7 @@ TileLoader1bpp_TwoRemap:
     ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
     ld      e, 14                                       ; Color index for 0 values
     ld      d, 7                                        ; Color index for 1 values
-    call    VDP_Upload1BPPWithPaletteRemaps_VRAMPtrSet
+    call    Tile_Upload1BPPWithPaletteRemaps_VRAMPtrSet
 
     ; Alt version that doesn't have to interleave the colors.
     ld      hl, $74
@@ -149,9 +150,102 @@ TileLoader1bpp_TwoRemap:
     ld      bc, TileData_1bpp_End - TileData_1bpp_Begin ; Length of data
     PRE_INTERLEAVE_1BPP_REMAP_ENTRIES_TO_E 7, 14
 
-    call    VDP_Upload1BPPWithPaletteRemaps_VRAMPtrSet_ColorsInterleaved
+    call    Tile_Upload1BPPWithPaletteRemaps_VRAMPtrSet_ColorsInterleaved
 
+CompositeTiles:
+    ; Here's what we're going to do:  Composite two tiles on top of each other
+    ; and upload to VRAM.
+    ; 
+    ; Here's how we're going to do it:
+    ; 1. Allocate stack space to hold a 4bpp tile
+    ; 2. Inflate a 1bpp tile into RAM, remapping 1s to a new color.
+    ; 3. Allocate stack space to hold another 4bpp tile
+    ; 4. Inflate a 1bpp tile into RAM, remapping 0s *AND* 1s to new colors.
+    ; 5. Composite the first tile on top of the second one, using a mask
+    ; 6. Upload the composited tile to VRAM.
+    ; 7. Dealloc the stack space used.
 
+    ; Set aside space on the stack for the first 4bpp tile
+    ld      hl, -32     ; 1 4bpp tile's worth of bytes!
+    add     hl, sp
+    ld      sp, hl
+    ex      de, hl      ; DE points to base of RAM for tile.
+
+    ; Inflate the first tile into RAM.
+    ld      hl, TileData_1bpp_Begin + ( 0 * 8 ) ; Each tile in 1bpp is 8 bytes
+    ld      a, 14       ; Palette entry for 1s data.
+    ld      b, 8        ; 8 bytes' worth of 1bpp data
+    call    Tile_Inflate1BPPto4BPPRAMWithPaletteRemap
+
+    ; Upload this to VRAM so that we can validate that it looks correct.
+    push    de
+    push    hl
+        ld      hl, $0004   ; Compensate for the two pushes.
+        add     hl, sp
+        ex      de, hl  ; DE = Start of 4bpp data in RAM.
+        ld      bc, 32  ; Length of data
+        ld      hl, $76 ; Dest tile index
+        call    VDP_UploadTileDataToTilePos
+    pop     hl
+    pop     de
+
+    ; Set aside space on the stack for the second 4bpp tile
+    ld      hl, -32     ; 1 4bpp tile's worth of bytes!
+    add     hl, sp
+    ld      sp, hl
+    ex      de, hl      ; DE points to base of RAM for tile.
+
+    ; Inflate the second tile into RAM.
+    ld      hl, TileData_1bpp_Begin + ( 1 * 8 ) ; Each tile in 1bpp is 8 bytes
+    ld      c, 7        ; Palette entry for 0s data.
+    ld      a, 1        ; Palette entry for 1s data.
+    ld      b, 8        ; 8 bytes' worth of 1bpp data
+    call    Tile_Inflate1BPPto4BPPRAMWithPaletteRemaps
+
+    ; Upload this to VRAM so that we can validate that it looks correct.
+    push    de
+    push    hl
+        ld      hl, $0004   ; Compensate for the two pushes.
+        add     hl, sp
+        ex      de, hl  ; DE = Start of 4bpp data in RAM.
+        ld      bc, 32  ; Length of data
+        ld      hl, $77 ; Dest tile index
+        call    VDP_UploadTileDataToTilePos
+    pop     hl
+    pop     de
+
+    ; Create a 1bpp mask from the tile (we have it already in the 1bpp data, but do this to confirm)
+    ld      hl, -8
+    add     hl, sp
+    ld      sp, hl
+    ex      de, hl          ; DE holds our dest loc in RAM
+    ld      hl, 40
+    add     hl, sp          ; HL points to top tile.
+    ld      b, 8
+    call    Tile_GenerateMaskFromTile_DefaultClearColor
+
+    ; Now composite them using a 1bpp mask.
+    ld  hl, $78
+    CALC_VRAM_LOC_FOR_TILE_INDEX_IN_HL
+    SET_VRAM_WRITE_LOC_FROM_HL
+
+    ; Get bottom tile
+    ld      iy, 8       ; Offset 8 for 1bpp mask
+    add     iy, sp      ; IY = Pointer to bottom tile
+    ; Get top tile
+    ld      hl, 40      ; Offset 40 == 8 (1bpp mask) + 32 (bottom tile 4bpp data)
+    add     hl, sp
+    ex      de, hl      ; DE = Pointer to top tile
+    ; Get mask
+    ld      hl, 0
+    add     hl, sp      ; 1bpp Mask (should be same result as 1bpp src data)
+    ld      b, 8        ; Size of Mask
+    call    Tile_CompositePlanarTiles_ToVRAM_VRAMPtrSet
+
+    ; Restore our stack pointer
+    ld      hl, 64
+    add     hl, sp
+    ld      sp, hl
 
 ; Write a character.
 WriteCornerChars:
