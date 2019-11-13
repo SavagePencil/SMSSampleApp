@@ -310,7 +310,7 @@ UploadSprites:
 
 RenderSprite:
     ld      hl, SpriteChain1
-    call    SpriteManager_RenderChainSequence
+    call    SpriteChain_RenderChainSequence
 
 UploadMap:
     ld      ix, MyMapDef
@@ -847,31 +847,26 @@ State4_OnEnter:
 
 .DSTRUCT MyFSM_State1 INSTANCEOF State VALUES
     OnUpdate:   .dw State_NULL      
-    OnEvent:    .dw State_NULL 
     OnEnter:    .dw State1_OnEnter 
     OnExit:     .dw State_NULL
 .ENDST  
 .DSTRUCT MyFSM_State2 INSTANCEOF State VALUES
     OnUpdate:   .dw State2_OnUpdate      
-    OnEvent:    .dw State_NULL 
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
 .ENDST
 .DSTRUCT MyFSM_State3 INSTANCEOF State VALUES
     OnUpdate:   .dw State_NULL      
-    OnEvent:    .dw State_NULL 
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
 .ENDST
 .DSTRUCT MyFSM_State4 INSTANCEOF State VALUES
     OnUpdate:   .dw State_NULL      
-    OnEvent:    .dw State_NULL 
     OnEnter:    .dw State4_OnEnter 
     OnExit:     .dw State_NULL
 .ENDST
 .DSTRUCT MyFSM_State5 INSTANCEOF State VALUES
     OnUpdate:   .dw State_NULL      
-    OnEvent:    .dw State_NULL 
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
 .ENDST
