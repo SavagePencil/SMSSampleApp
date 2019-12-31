@@ -18,7 +18,9 @@
         {
             "label": "Assemble SMS",
             "type": "shell",
-            "command": "wla-z80 -I ../SMSFramework -o ./obj/main.o ./main.asm",
+            "command": "wla-z80 -v -o ../obj/main.o main.asm",
+
+            "options": { "cwd": "./src/" },
        
             "group": "build"
         }
