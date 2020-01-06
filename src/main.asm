@@ -39,18 +39,18 @@ Application_MainLoop:
     jp   Application_MainLoop           
 .ENDS
 
-.STRUCT SpriteChain
-    Header INSTANCEOF SpriteChainHeader
-    YPosEntries INSTANCEOF SAT_YPosEntry 8
-    XPosTileEntries INSTANCEOF SAT_XPosTileEntry 8
+.STRUCT sSpriteChain
+    Header INSTANCEOF sSpriteChainHeader
+    YPosEntries INSTANCEOF sSAT_YPosEntry 8
+    XPosTileEntries INSTANCEOF sSAT_XPosTileEntry 8
 .ENDST
 
 .MACRO PREP_CHAIN ARGS SRC_CHAIN, NEXT_CHAIN, SIZE, X_POS, Y_POS
     ld      ix, SRC_CHAIN
     ld      a, SIZE
     ld      bc, NEXT_CHAIN
-    ld      de, SRC_CHAIN + 8 ;SpriteChain.YPosEntries
-    ld      hl, SRC_CHAIN + 8 + SIZE ;SpriteChain.XPosEntries
+    ld      de, SRC_CHAIN + 8 ;sSpriteChain.YPosEntries
+    ld      hl, SRC_CHAIN + 8 + SIZE ;sSpriteChain.XPosEntries
     call    SpriteChain_Init
 
     ; Fill it out
@@ -344,7 +344,7 @@ AllDone:
     call    VDPManager_WriteRegisterImmediate
     ret
 
-.DSTRUCT MyMapRequest INSTANCEOF MapLoadRequest VALUES
+.DSTRUCT MyMapRequest INSTANCEOF sMapLoadRequest VALUES
     MapXPos .DW 0
     MapYPos .DW 0
     Width   .DB 16
@@ -367,7 +367,7 @@ MapData:
 
 MapDataEnd
 
-.DSTRUCT MyMapDef INSTANCEOF MapDefinition VALUES
+.DSTRUCT MyMapDef INSTANCEOF sMapDefinition VALUES
     MapWidthInEntries:      .dw $10
     BytesPerEntry:          .db $02
     MapWidthInBytes:        .dw $20
@@ -375,7 +375,7 @@ MapDataEnd
     MapData:                .dw MapData
 .ENDST
 
-.DSTRUCT SpriteChain1 INSTANCEOF SpriteChain VALUES
+.DSTRUCT SpriteChain1 INSTANCEOF sSpriteChain VALUES
 
     Header.CurrCount:               .db 8
     Header.MaxCount:                .db 8
@@ -417,12 +417,12 @@ MapDataEnd
 
 .ENDST
 
-.STRUCT SpriteTable
-    YPosEntries INSTANCEOF SAT_YPosEntry 2
-    XPosTileEntries INSTANCEOF SAT_XPosTileEntry 2
+.STRUCT sSpriteTable
+    YPosEntries INSTANCEOF sSAT_YPosEntry 2
+    XPosTileEntries INSTANCEOF sSAT_XPosTileEntry 2
 .ENDST
 
-.DSTRUCT MySpriteTable INSTANCEOF SpriteTable VALUES
+.DSTRUCT MySpriteTable INSTANCEOF sSpriteTable VALUES
 
     XPosTileEntries.1.XPos:         .db $7C
     YPosEntries.1.YPos:             .db $5F
@@ -431,7 +431,7 @@ MapDataEnd
     YPosEntries.2.YPos:             .db VDP_SAT_STOP_SPRITES_YVALUE ; Sentinel.
 .ENDST
 
-.DSTRUCT CornerChar INSTANCEOF NameTableEntry VALUES
+.DSTRUCT CornerChar INSTANCEOF sNameTableEntry VALUES
     TileIndex:  .db 'J'
     Flags:      .db VDP_NAMETABLE_ENTRY_VFLIP | VDP_NAMETABLE_ENTRY_HFLIP | VDP_NAMETABLE_ENTRY_BGPRIORITY
 .ENDST
@@ -774,20 +774,20 @@ TileData_1bpp_End:
 .ENDS
 
 .RAMSECTION "Sprite Chains" SLOT 3
-SpriteChain2 INSTANCEOF SpriteChain
-SpriteChain3 INSTANCEOF SpriteChain
-SpriteChain4 INSTANCEOF SpriteChain
-SpriteChain5 INSTANCEOF SpriteChain
-SpriteChain6 INSTANCEOF SpriteChain
-SpriteChain7 INSTANCEOF SpriteChain
-SpriteChain8 INSTANCEOF SpriteChain
-SpriteChain9 INSTANCEOF SpriteChain
+SpriteChain2 INSTANCEOF sSpriteChain
+SpriteChain3 INSTANCEOF sSpriteChain
+SpriteChain4 INSTANCEOF sSpriteChain
+SpriteChain5 INSTANCEOF sSpriteChain
+SpriteChain6 INSTANCEOF sSpriteChain
+SpriteChain7 INSTANCEOF sSpriteChain
+SpriteChain8 INSTANCEOF sSpriteChain
+SpriteChain9 INSTANCEOF sSpriteChain
 
 .ENDS
 
 
 .SECTION "Mode Manager Test" FREE
-.DSTRUCT Mode1 INSTANCEOF ApplicationMode VALUES
+.DSTRUCT Mode1 INSTANCEOF sApplicationMode VALUES
     VideoInterruptJumpTarget:   .dw Mode1VideoInterruptHandler
     OnNMI:                      .dw ModeDefaultHandler
     OnActive:                   .dw Mode1ActiveHandler
@@ -796,7 +796,7 @@ SpriteChain9 INSTANCEOF SpriteChain
     OnRenderPrep:               .dw ModeDefaultHandler
     OnEvent:                    .dw ModeDefaultHandler  
 .ENDST
-.DSTRUCT Mode2 INSTANCEOF ApplicationMode VALUES
+.DSTRUCT Mode2 INSTANCEOF sApplicationMode VALUES
     VideoInterruptJumpTarget:   .dw ModeDefaultHandler
     OnNMI:                      .dw ModeDefaultHandler
     OnActive:                   .dw Mode2ActiveHandler
@@ -828,7 +828,7 @@ Mode2InactiveHandler:
 .ENDS
 
 .RAMSECTION "My FSM" SLOT 3
-    gMyFSM INSTANCEOF FSM
+    gMyFSM INSTANCEOF sFSM
 .ENDS
 
 .SECTION "FSM Test" FREE
@@ -851,27 +851,27 @@ State4_OnEnter:
     scf         ; Indicate transition
     ret
 
-.DSTRUCT MyFSM_State1 INSTANCEOF State VALUES
+.DSTRUCT MyFSM_State1 INSTANCEOF sState VALUES
     OnUpdate:   .dw State_NULL      
     OnEnter:    .dw State1_OnEnter 
     OnExit:     .dw State_NULL
 .ENDST  
-.DSTRUCT MyFSM_State2 INSTANCEOF State VALUES
+.DSTRUCT MyFSM_State2 INSTANCEOF sState VALUES
     OnUpdate:   .dw State2_OnUpdate      
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
 .ENDST
-.DSTRUCT MyFSM_State3 INSTANCEOF State VALUES
+.DSTRUCT MyFSM_State3 INSTANCEOF sState VALUES
     OnUpdate:   .dw State_NULL      
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
 .ENDST
-.DSTRUCT MyFSM_State4 INSTANCEOF State VALUES
+.DSTRUCT MyFSM_State4 INSTANCEOF sState VALUES
     OnUpdate:   .dw State_NULL      
     OnEnter:    .dw State4_OnEnter 
     OnExit:     .dw State_NULL
 .ENDST
-.DSTRUCT MyFSM_State5 INSTANCEOF State VALUES
+.DSTRUCT MyFSM_State5 INSTANCEOF sState VALUES
     OnUpdate:   .dw State_NULL      
     OnEnter:    .dw State_NULL 
     OnExit:     .dw State_NULL
