@@ -100,10 +100,10 @@ _Application_Bootstrap_ModeTesting:
 _Application_Bootstrap_FSMTesting:
     ld      ix, gMyFSM
     ld      hl, MyFSM_State1
-    call    FSM_Init
-    call    FSM_OnUpdate
+    call    FSM_IX@Init
+    call    FSM_IX@OnUpdate
     ld      hl, MyFSM_State4
-    call    FSM_ChangeState
+    call    FSM_IX@ChangeState
 
 ; Setup the palette
     ld      b, (PaletteEnd - PaletteBegin) >> 1
